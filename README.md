@@ -91,7 +91,8 @@ results/
   meta_fits.rds                    list of brms fit objects (one per parameter)
   fits/meta_fit_<param>.rds        individual fit files (checkpointed)
   publication/
-    pooled_summary.csv             pooled median, CrI, tau, pd, ROPE% per parameter
+    pooled_summary.csv             pooled median, CrI, tau, sigma, pd, ROPE% per parameter
+    cohort_summary.csv             per-cohort median, CrI, sigma, pd, ROPE% per parameter
     forest_plots/forest_<param>.png  forest plot per parameter
 ```
 
@@ -101,11 +102,36 @@ results/
 |---|---|
 | `parameter` | Parameter name (canonical, post-mapping) |
 | `pooled_median` | Median of the pooled posterior (draw scale) |
-| `pooled_ci_low/high` | HDI credible interval |
-| `tau_median` | Between-cohort heterogeneity (SD) |
-| `tau_ci_low/high` | HDI for tau |
+| `pooled_ci_low/high` | HDI credible interval for the pooled effect |
+| `tau_median` | Between-cohort heterogeneity SD |
+| `tau_ci_low/high` | HDI for τ |
+| `sigma_median` | Intra-cohort draw-level SD (within-cohort variation: MCMC + imputation uncertainty) |
+| `sigma_ci_low/high` | HDI for σ |
 | `pd` | Probability of direction (0–1) |
 | `rope_pct` | % of pooled posterior in ROPE (NA if not configured) |
+
+`cohort_summary.csv` columns (one row per cohort × parameter):
+
+| Column | Description |
+|---|---|
+| `cohort_id` | Cohort identifier |
+| `cohort_label` | Human-readable cohort label |
+| `parameter` | Parameter name |
+| `m` | Number of imputations for this cohort |
+| `n_draws` | Total draw rows for this cohort × parameter |
+| `median` | Median of all draws (collapsed across imputations) |
+| `ci_low/high` | HDI credible interval |
+| `sigma` | SD of all draws — intra-cohort variation (imputation + MCMC uncertainty) |
+| `pd` | Probability of direction (0–1) |
+| `rope_pct` | % of draws in ROPE (NA if not configured) |
+
+**Variance decomposition interpretation:**
+
+| Quantity | Source | What it tells you |
+|---|---|---|
+| `sigma` (cohort_summary) | Within each cohort | Posterior uncertainty given that cohort's data and imputation |
+| `tau` (pooled_summary) | Across cohorts | True between-cohort effect heterogeneity |
+| `sigma` (pooled_summary) | Pooled within-cohort | Average draw-level SD across all cohorts and imputations |
 
 ## Example: two synthetic cohorts
 

@@ -150,6 +150,11 @@ summarise_meta_fit <- function(fit, param_name, summary_spec) {
     rope_pct <- rope_res$ROPE_Percentage * 100
   }
 
+  draws_sigma <- posterior::as_draws_df(fit, variable = "sigma") %>%
+    tibble::as_tibble() %>%
+    dplyr::pull(sigma)
+  hdi_sigma <- bayestestR::hdi(draws_sigma, ci = ci)
+
   tibble::tibble(
     parameter       = param_name,
     pooled_median   = median(draws_pooled),
@@ -158,10 +163,35 @@ summarise_meta_fit <- function(fit, param_name, summary_spec) {
     tau_median      = median(draws_tau),
     tau_ci_low      = hdi_tau$CI_low,
     tau_ci_high     = hdi_tau$CI_high,
+    sigma_median    = median(draws_sigma),
+    sigma_ci_low    = hdi_sigma$CI_low,
+    sigma_ci_high   = hdi_sigma$CI_high,
     pd              = pd_val,
     rope_pct        = rope_pct,
     ci_width        = ci
   )
+}
+
+# ------------------------------------------------------------------
+# Per-cohort posterior summary from raw draws (not from the fitted model)
+# ------------------------------------------------------------------
+summarise_cohort_draws <- function(combined_draws, ci = 0.89, rope_range = NULL) {
+  combined_draws %>%
+    dplyr::group_by(cohort_id, cohort_label, parameter) %>%
+    dplyr::summarise(
+      m           = dplyr::n_distinct(imputation),
+      n_draws     = dplyr::n(),
+      median      = median(value),
+      ci_low      = bayestestR::hdi(value, ci = ci)$CI_low,
+      ci_high     = bayestestR::hdi(value, ci = ci)$CI_high,
+      sigma       = sd(value),
+      pd          = bayestestR::p_direction(value)$pd,
+      rope_pct    = if (!is.null(rope_range))
+                      bayestestR::rope(value, range = rope_range, ci = ci)$ROPE_Percentage * 100
+                    else NA_real_,
+      ci_width    = ci,
+      .groups     = "drop"
+    )
 }
 
 # ------------------------------------------------------------------

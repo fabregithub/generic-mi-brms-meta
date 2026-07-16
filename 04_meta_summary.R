@@ -35,6 +35,16 @@ readr::write_csv(pooled_summary, file.path(pub_dir, "pooled_summary.csv"))
 log_msg("Wrote pooled_summary.csv")
 print(pooled_summary, n = Inf)
 
+# Per-cohort summary (intra-cohort variation)
+cohort_summary <- summarise_cohort_draws(
+  combined_draws = combined,
+  ci             = summary_spec$ci %||% 0.89,
+  rope_range     = summary_spec$rope_range
+)
+readr::write_csv(cohort_summary, file.path(pub_dir, "cohort_summary.csv"))
+log_msg("Wrote cohort_summary.csv")
+print(cohort_summary, n = Inf)
+
 # Forest plots
 plot_dir <- file.path(pub_dir, "forest_plots")
 dir.create(plot_dir, recursive = TRUE, showWarnings = FALSE)
