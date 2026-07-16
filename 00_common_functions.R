@@ -194,9 +194,10 @@ make_forest_plot <- function(combined_draws, pooled_summary_row, param_name) {
 
   ggplot2::ggplot(plot_data, ggplot2::aes(x = median, y = cohort_label, colour = type)) +
     ggplot2::geom_vline(xintercept = 0, linetype = "dashed", colour = "grey50") +
-    ggplot2::geom_errorbarh(
+    ggplot2::geom_errorbar(
       ggplot2::aes(xmin = ci_low, xmax = ci_high),
-      height = 0.2, linewidth = 0.7
+      width = 0.2, linewidth = 0.7,
+      orientation = "y"
     ) +
     ggplot2::geom_point(size = 3) +
     ggplot2::scale_colour_manual(
