@@ -86,18 +86,6 @@ fit_meta_one <- function(draws_param, param_name, model_spec, results_dir) {
   log_msg("Fitting meta-analysis model for:", param_name)
 
   priors <- c(
-    brms::prior(
-      normal(0, prior_pooled_sd),
-      class = "Intercept"
-    ),
-    brms::prior_string(
-      paste0("exponential(", model_spec$prior_tau_rate, ")"),
-      class = "sd"
-    )
-  )
-
-  environment(priors[[1]]$prior) <- NULL  # brms needs string priors here
-  priors <- c(
     brms::set_prior(
       paste0("normal(0, ", model_spec$prior_pooled_sd, ")"),
       class = "Intercept"
