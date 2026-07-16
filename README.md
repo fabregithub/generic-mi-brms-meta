@@ -22,7 +22,8 @@ with no reweighting logic needed.
 ```r
 install.packages(c("brms", "posterior", "bayestestR",
                    "dplyr", "purrr", "tidyr", "readr",
-                   "tibble", "ggplot2", "glue", "jsonlite"))
+                   "tibble", "ggplot2", "glue", "jsonlite",
+                   "flextable", "quarto"))
 ```
 
 CmdStan must be installed for `brms`:
@@ -30,6 +31,9 @@ CmdStan must be installed for `brms`:
 ```r
 cmdstanr::install_cmdstan()
 ```
+
+Quarto CLI must be installed for Step 5 (report rendering):
+[https://quarto.org/docs/get-started/](https://quarto.org/docs/get-started/)
 
 ## Workflow
 
@@ -91,9 +95,13 @@ results/
   meta_fits.rds                    list of brms fit objects (one per parameter)
   fits/meta_fit_<param>.rds        individual fit files (checkpointed)
   publication/
-    pooled_summary.csv             pooled median, CrI, tau, sigma, pd, ROPE% per parameter
-    cohort_summary.csv             per-cohort median, CrI, sigma, pd, ROPE% per parameter
+    pooled_summary.csv               pooled median, CrI, tau, sigma, pd, ROPE% per parameter
+    cohort_summary.csv               per-cohort median, CrI, sigma, pd, ROPE% per parameter
     forest_plots/forest_<param>.png  forest plot per parameter
+    report/
+      meta_analysis_report.qmd       Quarto source
+      meta_analysis_report.html      rendered HTML report
+      meta_analysis_report.docx      rendered Word document
 ```
 
 `pooled_summary.csv` columns:
@@ -154,6 +162,7 @@ Rscript run_all.R
 | `02_combine_draws.R` | Stack draws, apply parameter name mapping, save `combined_draws.rds` |
 | `03_fit_meta.R` | Fit `value ~ 1 + (1 | cohort_id)` per parameter, checkpoint fits |
 | `04_meta_summary.R` | Posterior summary + forest plots |
+| `05_report.R` | Write and render Quarto report (HTML + DOCX) |
 | `run_all.R` | Runs all steps in order |
 
 ## Statistical model
