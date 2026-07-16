@@ -75,7 +75,7 @@ hdi_col_name <- paste0(ci_pct, "% HDI")
 qmd_lines <- c(
   '---',
   'title: "Federated Bayesian Meta-Analysis Report"',
-  'date: "`r format(Sys.Date(), \'%B %d, %Y\')`"',
+  paste0('date: "', format(Sys.Date(), "%B %d, %Y"), '"'),
   'format:',
   '  html:',
   '    toc: true',
