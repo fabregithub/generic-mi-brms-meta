@@ -66,183 +66,186 @@ forest_chunks <- if (length(forest_files) > 0) {
 }
 
 # ------------------------------------------------------------
-# Write .qmd
+# Write .qmd — built with paste() to avoid glue interpreting {r ...} chunks
 # ------------------------------------------------------------
 qmd_path <- file.path(report_dir, "meta_analysis_report.qmd")
 
-qmd <- glue::glue('
----
-title: "Federated Bayesian Meta-Analysis Report"
-date: "`r format(Sys.Date(), \'%B %d, %Y\')`"
-format:
-  html:
-    toc: true
-    toc-depth: 3
-    number-sections: true
-    theme: cosmo
-    embed-resources: true
-    code-fold: true
-  docx:
-    toc: true
-    number-sections: true
-execute:
-  echo: false
-  warning: false
-  message: false
----
+hdi_col_name <- paste0(ci_pct, "% HDI")
 
-```{{r setup}}
-library(dplyr)
-library(readr)
-library(knitr)
-library(flextable)
+qmd_lines <- c(
+  '---',
+  'title: "Federated Bayesian Meta-Analysis Report"',
+  'date: "`r format(Sys.Date(), \'%B %d, %Y\')`"',
+  'format:',
+  '  html:',
+  '    toc: true',
+  '    toc-depth: 3',
+  '    number-sections: true',
+  '    theme: cosmo',
+  '    embed-resources: true',
+  '    code-fold: true',
+  '  docx:',
+  '    toc: true',
+  '    number-sections: true',
+  'execute:',
+  '  echo: false',
+  '  warning: false',
+  '  message: false',
+  '---',
+  '',
+  '```{r setup}',
+  'library(dplyr)',
+  'library(readr)',
+  'library(knitr)',
+  'library(flextable)',
+  '',
+  'pooled <- readr::read_csv("../pooled_summary.csv", show_col_types = FALSE)',
+  'cohort <- readr::read_csv("../cohort_summary.csv",  show_col_types = FALSE)',
+  paste0('ci_pct <- ', ci_pct),
+  paste0('hdi_col <- "', hdi_col_name, '"'),
+  '```',
+  '',
+  '# Methods',
+  '',
+  paste0(
+    'This report summarises a federated Bayesian meta-analysis combining ',
+    'posterior draws from ', n_cohorts, ' cohort(s): ', cohort_labels, '.'
+  ),
+  '',
+  'Each cohort independently applied multiple imputation (miceRanger) and',
+  'fitted a Bayesian regression model (brms/CmdStan), retaining',
+  'per-imputation posterior draws for the pre-specified exposure parameter(s).',
+  'Draws were exported using `generic-mi-brms-pipeline` Step 12 and combined',
+  'here without sharing individual-level data.',
+  '',
+  'A hierarchical Bayesian model was fitted to the stacked draws for each',
+  'parameter independently:',
+  '',
+  '$$',
+  '\\text{value}_i \\sim \\mathcal{N}(\\mu + u_{\\text{cohort}[i]},\\, \\sigma)',
+  '$$',
+  '$$',
+  paste0(
+    '\\mu \\sim \\mathcal{N}(0,\\, ', prior_pooled_sd, '), \\quad',
+    ' u_{\\text{cohort}} \\sim \\mathcal{N}(0,\\, \\tau), \\quad',
+    ' \\tau \\sim \\text{Exponential}(', prior_tau_rate, ')'
+  ),
+  '$$',
+  '',
+  paste0(
+    'where $\\mu$ is the pooled effect, $\\tau$ is between-cohort heterogeneity, ',
+    'and $\\sigma$ captures intra-cohort draw-level variation (imputation and ',
+    'MCMC uncertainty). MCMC settings: ', chains, ' chains, ', iter, ' iterations (',
+    warmup, ' warmup). Posterior summaries report the median and ', ci_pct,
+    '% highest-density interval (HDI). ', rope_str, '.'
+  ),
+  '',
+  '# Pooled results',
+  '',
+  '## Pooled posterior summary',
+  '',
+  '```{r pooled-table}',
+  'pooled %>%',
+  '  dplyr::mutate(',
+  '    Parameter        = parameter,',
+  '    `Pooled median`  = round(pooled_median,  3),',
+  paste0('    `', hdi_col_name, '` = paste0("[", round(pooled_ci_low,  3), ", ", round(pooled_ci_high, 3), "]"),'),
+  '    `tau (median)`   = round(tau_median,   3),',
+  '    `tau HDI`        = paste0("[", round(tau_ci_low,  3), ", ", round(tau_ci_high, 3), "]"),',
+  '    `sigma (median)` = round(sigma_median, 3),',
+  '    `pd (%)`         = round(pd * 100, 1),',
+  '    `ROPE (%)`       = ifelse(is.na(rope_pct), "—", round(rope_pct, 1))',
+  '  ) %>%',
+  paste0('  dplyr::select(Parameter, `Pooled median`, `', hdi_col_name,
+         '`, `tau (median)`, `tau HDI`, `sigma (median)`, `pd (%)`, `ROPE (%)`) %>%'),
+  '  flextable::flextable() %>%',
+  '  flextable::autofit() %>%',
+  '  flextable::theme_zebra()',
+  '```',
+  '',
+  '**Column guide:**',
+  '- **Pooled median** — meta-analytic estimate on the link scale (log-OR, log-HR, or unstandardised coefficient).',
+  '- **tau** — between-cohort heterogeneity SD. Values < 0.1 indicate low, 0.1–0.3 moderate, > 0.3 substantial heterogeneity.',
+  '- **sigma** — pooled intra-cohort draw SD (imputation + MCMC uncertainty).',
+  '- **pd** — probability of direction: the probability that the effect is positive (or negative).',
+  '- **ROPE** — % of the pooled posterior within the region of practical equivalence (if specified).',
+  '',
+  '## Forest plots',
+  '',
+  forest_chunks,
+  '',
+  '# Per-cohort results',
+  '',
+  '## Per-cohort posterior summary',
+  '',
+  '```{r cohort-table}',
+  'cohort %>%',
+  '  dplyr::mutate(',
+  '    Cohort    = cohort_label,',
+  '    Parameter = parameter,',
+  '    m         = m,',
+  '    Median    = round(median, 3),',
+  paste0('    `', hdi_col_name, '` = paste0("[", round(ci_low, 3), ", ", round(ci_high, 3), "]"),'),
+  '    sigma     = round(sigma, 3),',
+  '    `pd (%)`  = round(pd * 100, 1),',
+  '    `ROPE (%)`= ifelse(is.na(rope_pct), "—", round(rope_pct, 1))',
+  '  ) %>%',
+  paste0('  dplyr::select(Cohort, Parameter, m, Median, `', hdi_col_name,
+         '`, sigma, `pd (%)`, `ROPE (%)`) %>%'),
+  '  flextable::flextable() %>%',
+  '  flextable::autofit() %>%',
+  '  flextable::theme_zebra()',
+  '```',
+  '',
+  '**sigma** here is the SD of all draws within that cohort (collapsed across',
+  'imputations), reflecting within-cohort posterior uncertainty. Compare with',
+  '**tau** in the pooled table to decompose total variance into within- vs',
+  'between-cohort sources.',
+  '',
+  '# Variance decomposition',
+  '',
+  '```{r variance-decomp}',
+  'decomp <- pooled %>%',
+  '  dplyr::select(parameter, sigma_median, tau_median) %>%',
+  '  dplyr::mutate(',
+  '    `sigma^2 (within)`       = round(sigma_median^2, 4),',
+  '    `tau^2 (between)`        = round(tau_median^2,   4),',
+  '    `total variance`         = round(sigma_median^2 + tau_median^2, 4),',
+  '    `% between (approx I^2)` = round(100 * tau_median^2 / (sigma_median^2 + tau_median^2), 1)',
+  '  ) %>%',
+  '  dplyr::select(parameter, `sigma^2 (within)`, `tau^2 (between)`,',
+  '                `total variance`, `% between (approx I^2)`)',
+  '',
+  'flextable::flextable(decomp) %>%',
+  '  flextable::autofit() %>%',
+  '  flextable::theme_zebra()',
+  '```',
+  '',
+  '> **Note:** the "% between" column is an approximation of I² computed as',
+  '> $\\tau^2 / (\\tau^2 + \\sigma^2)$. Because $\\sigma$ is estimated from',
+  '> pooled draws rather than a single per-study standard error, this value',
+  '> is an approximation; report $\\tau$ as the primary heterogeneity measure.',
+  '',
+  '# Settings',
+  '',
+  '```{r settings}',
+  'tibble::tibble(',
+  '  Setting = c("Cohorts", "N cohorts", "CI width", "ROPE range",',
+  '              "Prior pooled SD", "Prior tau rate",',
+  '              "Chains", "Iterations", "Warmup"),',
+  paste0('  Value   = c(', paste(
+    paste0('"', c(cohort_labels, n_cohorts, paste0(ci_pct, "%"), rope_str,
+                  prior_pooled_sd, prior_tau_rate, chains, iter, warmup), '"'),
+    collapse = ", "
+  ), ')'),
+  ') %>%',
+  '  flextable::flextable() %>%',
+  '  flextable::autofit() %>%',
+  '  flextable::theme_zebra()',
+  '```'
+)
 
-pooled <- readr::read_csv("../pooled_summary.csv", show_col_types = FALSE)
-cohort <- readr::read_csv("../cohort_summary.csv",  show_col_types = FALSE)
-ci_pct <- {ci_pct}
-```
-
-# Methods
-
-This report summarises a federated Bayesian meta-analysis combining
-posterior draws from {n_cohorts} cohort(s): {cohort_labels}.
-
-Each cohort independently applied multiple imputation (miceRanger) and
-fitted a Bayesian regression model (brms/CmdStan), retaining
-per-imputation posterior draws for the pre-specified exposure parameter(s).
-Draws were exported using `generic-mi-brms-pipeline` Step 12 and combined
-here without sharing individual-level data.
-
-A hierarchical Bayesian model was fitted to the stacked draws for each
-parameter independently:
-
-$$
-\\text{{value}}_i \\sim \\mathcal{{N}}(\\mu + u_{{\\text{{cohort}}[i]}},\\, \\sigma)
-$$
-$$
-\\mu \\sim \\mathcal{{N}}(0,\\, {prior_pooled_sd}), \\quad
-u_{{\\text{{cohort}}}} \\sim \\mathcal{{N}}(0,\\, \\tau), \\quad
-\\tau \\sim \\text{{Exponential}}({prior_tau_rate})
-$$
-
-where $\\mu$ is the pooled effect, $\\tau$ is between-cohort heterogeneity,
-and $\\sigma$ captures intra-cohort draw-level variation (imputation and
-MCMC uncertainty). MCMC settings: {chains} chains, {iter} iterations
-({warmup} warmup). Posterior summaries report the median and {ci_pct}%
-highest-density interval (HDI). {rope_str}.
-
-# Pooled results
-
-## Pooled posterior summary
-
-```{{r pooled-table}}
-pooled %>%
-  dplyr::mutate(
-    Parameter       = parameter,
-    `Pooled median` = round(pooled_median,  3),
-    `{ci_pct}% HDI`      = paste0("[", round(pooled_ci_low,  3), ", ",
-                                       round(pooled_ci_high, 3), "]"),
-    `tau (median)`  = round(tau_median,   3),
-    `tau HDI`       = paste0("[", round(tau_ci_low,  3), ", ",
-                                  round(tau_ci_high, 3), "]"),
-    `sigma (median)`= round(sigma_median, 3),
-    `pd (%)`        = round(pd * 100, 1),
-    `ROPE (%)`      = ifelse(is.na(rope_pct), "—", round(rope_pct, 1))
-  ) %>%
-  dplyr::select(Parameter, `Pooled median`, `{ci_pct}% HDI`,
-                `tau (median)`, `tau HDI`, `sigma (median)`, `pd (%)`, `ROPE (%)`) %>%
-  flextable::flextable() %>%
-  flextable::autofit() %>%
-  flextable::theme_zebra()
-```
-
-**Column guide:**
-- **Pooled median** — meta-analytic estimate on the link scale (log-OR, log-HR, or unstandardised coefficient).
-- **tau** — between-cohort heterogeneity SD. Values < 0.1 indicate low, 0.1–0.3 moderate, > 0.3 substantial heterogeneity.
-- **sigma** — pooled intra-cohort draw SD (imputation + MCMC uncertainty).
-- **pd** — probability of direction: the probability that the effect is positive (or negative).
-- **ROPE** — % of the pooled posterior within the region of practical equivalence (if specified).
-
-## Forest plots
-
-{{forest_chunks}}
-
-# Per-cohort results
-
-## Per-cohort posterior summary
-
-```{{r cohort-table}}
-cohort %>%
-  dplyr::mutate(
-    Cohort          = cohort_label,
-    Parameter       = parameter,
-    m               = m,
-    Median          = round(median, 3),
-    `{ci_pct}% HDI`      = paste0("[", round(ci_low,  3), ", ",
-                                       round(ci_high, 3), "]"),
-    `sigma`         = round(sigma, 3),
-    `pd (%)`        = round(pd * 100, 1),
-    `ROPE (%)`      = ifelse(is.na(rope_pct), "—", round(rope_pct, 1))
-  ) %>%
-  dplyr::select(Cohort, Parameter, m, Median, `{ci_pct}% HDI`,
-                sigma, `pd (%)`, `ROPE (%)`) %>%
-  flextable::flextable() %>%
-  flextable::autofit() %>%
-  flextable::theme_zebra()
-```
-
-**sigma** here is the SD of all draws within that cohort (collapsed across
-imputations), reflecting within-cohort posterior uncertainty. Compare with
-**tau** in the pooled table to decompose total variance into within- vs
-between-cohort sources.
-
-# Variance decomposition
-
-```{{r variance-decomp}}
-decomp <- pooled %>%
-  dplyr::select(parameter, sigma_median, tau_median) %>%
-  dplyr::mutate(
-    `sigma^2 (within)`  = round(sigma_median^2, 4),
-    `tau^2 (between)`   = round(tau_median^2,   4),
-    `total variance`    = round(sigma_median^2 + tau_median^2, 4),
-    `% between (approx I^2)` = round(
-      100 * tau_median^2 / (sigma_median^2 + tau_median^2), 1
-    )
-  ) %>%
-  dplyr::select(parameter, `sigma^2 (within)`, `tau^2 (between)`,
-                `total variance`, `% between (approx I^2)`)
-
-flextable::flextable(decomp) %>%
-  flextable::autofit() %>%
-  flextable::theme_zebra()
-```
-
-> **Note:** the "% between" column is an approximation of I² computed as
-> $\\tau^2 / (\\tau^2 + \\sigma^2)$. Because $\\sigma$ is estimated from
-> pooled draws rather than a single per-study standard error, this value
-> is an approximation; report $\\tau$ as the primary heterogeneity measure.
-
-# Settings
-
-```{{r settings}}
-tibble::tibble(
-  Setting = c("Cohorts", "N cohorts", "CI width", "ROPE range",
-              "Prior pooled SD", "Prior tau rate",
-              "Chains", "Iterations", "Warmup"),
-  Value   = c("{cohort_labels}", "{n_cohorts}", "{ci_pct}%", "{rope_str}",
-              "{prior_pooled_sd}", "{prior_tau_rate}",
-              "{chains}", "{iter}", "{warmup}")
-) %>%
-  flextable::flextable() %>%
-  flextable::autofit() %>%
-  flextable::theme_zebra()
-```
-', .open = "{{", .close = "}}")
-
-# Replace the forest chunks placeholder (glue can't handle the dynamic block directly)
-qmd <- sub("\\{forest_chunks\\}", forest_chunks, qmd, fixed = TRUE)
-
-writeLines(qmd, qmd_path)
+writeLines(qmd_lines, qmd_path)
 log_msg("Wrote", qmd_path)
 
 # ------------------------------------------------------------
