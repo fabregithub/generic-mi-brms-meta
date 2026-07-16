@@ -144,3 +144,47 @@ tau        ~ Exponential(prior_tau_rate)
 where `value[i]` is one posterior draw from cohort `c[i]`, imputation
 `k`, draw `j`. Cohorts with more imputations or more draws contribute
 proportionally more rows; no explicit weighting is applied.
+
+---
+
+## Heterogeneity: τ vs I²
+
+The model reports **τ (tau)**, the between-cohort standard deviation, rather than I².
+
+**τ** is an absolute measure on the same scale as the parameter (log-OR, log-HR, z-score). It answers: "by how much do cohort-specific true effects vary around the pooled mean?" A τ of 0.2 on the log-OR scale means cohort effects typically fall within roughly ±0.4 log-OR of the pooled estimate (±2τ).
+
+**I²** is a relative measure (0–100%) of the proportion of total observed variance attributable to between-cohort heterogeneity rather than within-cohort sampling error. It was designed for classical meta-analysis where each study contributes a single point estimate and standard error. That structure does not apply here: within-cohort uncertainty comes from full posterior draws (not a single SE), and varies across cohorts and imputations. Computing I² from this model would require arbitrary averaging of within-cohort variances, making it an approximation.
+
+**Recommendation:** report τ (median and credible interval from `pooled_summary.csv`). If a journal or reviewer requires I², note that it is not directly estimable from a draws-based hierarchical model and report τ as the equivalent heterogeneity quantity.
+
+---
+
+## Reporting templates
+
+### Methods
+
+> We conducted a federated Bayesian meta-analysis of [N] cohorts to estimate the pooled effect of [exposure] on [outcome]. Each cohort independently applied multiple imputation (miceRanger) and fitted a Bayesian [family] regression model (brms/CmdStan) to [m] imputed datasets, retaining all per-imputation posterior draws. Per-imputation draws for the exposure parameter were exported and combined across cohorts. A hierarchical Bayesian model was fitted to the stacked draws, with cohort as a random intercept, yielding a joint posterior for the pooled effect (μ) and between-cohort heterogeneity (τ). Priors were Normal(0, [prior_pooled_sd]) on μ and Exponential([prior_tau_rate]) on τ. Posterior summaries report the median and [ci×100]% highest-density interval (HDI). Analyses used R ([version]) with brms ([version]) and CmdStan ([version]).
+
+### Results
+
+> The pooled [log-OR / log-HR / coefficient] for [exposure] was [pooled_median] (89% HDI [pooled_ci_low, pooled_ci_high]; OR/HR = [exp(pooled_median)], 89% HDI [exp(pooled_ci_low), exp(pooled_ci_high)]), with a probability of direction of [pd×100]%. Between-cohort heterogeneity was τ = [tau_median] (89% HDI [tau_ci_low, tau_ci_high]), indicating [low / moderate / substantial] variability in the exposure effect across cohorts [and can be considered [negligible/significant] with [rope_pct]% of the pooled posterior within the region of practical equivalence].
+
+**Guidance for filling in the template:**
+
+| Placeholder | Source |
+|---|---|
+| `pooled_median`, `pooled_ci_low/high` | `pooled_summary.csv` |
+| `tau_median`, `tau_ci_low/high` | `pooled_summary.csv` |
+| `pd` | `pooled_summary.csv` (`pd` column, multiply by 100 for %) |
+| `rope_pct` | `pooled_summary.csv` (omit sentence if `rope_range` not set) |
+| OR/HR | `exp(pooled_median)` and `exp(pooled_ci_low/high)` for log-link models |
+
+**Characterising τ magnitude** (on log-OR / log-HR scale, for orientation):
+
+| τ | Interpretation |
+|---|---|
+| < 0.1 | Low heterogeneity |
+| 0.1 – 0.3 | Moderate heterogeneity |
+| > 0.3 | Substantial heterogeneity |
+
+These thresholds are informal; interpret τ in the context of the parameter scale and the scientific question.
