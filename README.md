@@ -23,7 +23,7 @@ with no reweighting logic needed.
 install.packages(c("brms", "posterior", "bayestestR",
                    "dplyr", "purrr", "tidyr", "readr",
                    "tibble", "ggplot2", "glue", "jsonlite",
-                   "flextable", "quarto"))
+                   "flextable"))
 ```
 
 CmdStan must be installed for `brms`:
@@ -34,6 +34,8 @@ cmdstanr::install_cmdstan()
 
 Quarto CLI must be installed for Step 5 (report rendering):
 [https://quarto.org/docs/get-started/](https://quarto.org/docs/get-started/)
+
+> The `quarto` R package is optional — Step 5 falls back to the Quarto CLI automatically if the R package is not installed.
 
 ## Workflow
 
