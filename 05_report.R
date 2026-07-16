@@ -30,9 +30,11 @@ cohort_labels <- paste(
   collapse = ", "
 )
 ci_pct       <- round((meta_spec$summary$ci %||% 0.89) * 100)
-rope_str     <- if (!is.null(meta_spec$summary$rope_range))
+rope_str     <- if (!is.null(meta_spec$summary$rope_range)) {
   paste0("ROPE = [", paste(round(meta_spec$summary$rope_range, 3), collapse = ", "), "]")
-else "not specified"
+} else {
+  "not specified"
+}
 
 prior_pooled_sd <- meta_spec$model$prior_pooled_sd %||% 1.0
 prior_tau_rate  <- meta_spec$model$prior_tau_rate  %||% 1.0
