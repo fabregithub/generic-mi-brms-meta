@@ -249,26 +249,38 @@ writeLines(qmd_lines, qmd_path)
 log_msg("Wrote", qmd_path)
 
 # ------------------------------------------------------------
-# Render
+# Render — try quarto R package first, fall back to CLI
 # ------------------------------------------------------------
-render_ok <- tryCatch({
-  quarto::quarto_render(qmd_path, output_format = "html")
-  TRUE
-}, error = function(e) {
-  log_msg("HTML render failed:", conditionMessage(e))
-  FALSE
-})
-
-if (render_ok) {
-  html_path <- sub("\\.qmd$", ".html", qmd_path)
-  log_msg("Rendered HTML:", html_path)
+render_format <- function(fmt) {
+  ok <- FALSE
+  if (requireNamespace("quarto", quietly = TRUE)) {
+    ok <- tryCatch({
+      quarto::quarto_render(qmd_path, output_format = fmt)
+      TRUE
+    }, error = function(e) {
+      log_msg(fmt, "render via R package failed:", conditionMessage(e))
+      FALSE
+    })
+  }
+  if (!ok) {
+    cli <- Sys.which("quarto")
+    if (nzchar(cli)) {
+      ret <- system2(cli, c("render", shQuote(qmd_path), "--to", fmt), stdout = FALSE)
+      ok  <- (ret == 0)
+      if (!ok) log_msg(fmt, "render via CLI failed (exit code", ret, ")")
+    } else {
+      log_msg(fmt, "render skipped: neither 'quarto' R package nor quarto CLI found.")
+    }
+  }
+  ok
 }
 
-tryCatch({
-  quarto::quarto_render(qmd_path, output_format = "docx")
+if (render_format("html")) {
+  log_msg("Rendered HTML:", sub("\\.qmd$", ".html", qmd_path))
+}
+render_format("docx")
+if (file.exists(sub("\\.qmd$", ".docx", qmd_path))) {
   log_msg("Rendered DOCX:", sub("\\.qmd$", ".docx", qmd_path))
-}, error = function(e) {
-  log_msg("DOCX render failed (non-fatal):", conditionMessage(e))
-})
+}
 
 log_msg("SUCCESS: STEP 5: Write and render meta-analysis report")
