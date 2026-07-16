@@ -1,0 +1,9 @@
+results/
+data/
+examples/*/results/
+examples/*/data/
+*.rds
+*.rdb
+*.rdx
+.Rhistory
+.RData
