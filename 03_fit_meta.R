@@ -12,6 +12,14 @@ parameters <- sort(unique(combined$parameter))
 log_msg("Parameters to meta-analyse:", paste(parameters, collapse = ", "))
 
 fit_results <- purrr::map(parameters, function(param) {
+  safe_name <- gsub("[^A-Za-z0-9_]", "_", param)
+  fit_path  <- file.path(results_dir, "fits", paste0("meta_fit_", safe_name, ".rds"))
+
+  if (file.exists(fit_path)) {
+    log_msg("Skipping", param, "(fit already exists):", fit_path)
+    return(readRDS(fit_path))
+  }
+
   draws_param <- dplyr::filter(combined, parameter == param)
   tryCatch(
     fit_meta_one(
