@@ -84,6 +84,14 @@ parameter_map = list(
 
 ### 4. Run the pipeline
 
+#### RStudio (no terminal needed — recommended for Windows users)
+
+Open the project folder in RStudio, open `launch.R`, and click **Source**
+(`Ctrl+Shift+S` / `Cmd+Shift+S`). A text menu in the R console lets you
+run the full pipeline or individual steps without any terminal.
+
+#### Command line
+
 ```bash
 Rscript 01_validate_inputs.R   # check files, parameter overlap
 Rscript run_all.R              # validate + combine + fit + summarise
