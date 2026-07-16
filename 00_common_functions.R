@@ -99,7 +99,7 @@ fit_meta_one <- function(draws_param, param_name, model_spec, results_dir) {
   fit <- brms::brm(
     formula   = value ~ 1 + (1 | cohort_id),
     data      = draws_param,
-    family    = brms::gaussian(),
+    family    = gaussian(),
     prior     = priors,
     chains    = as.integer(model_spec$chains   %||% 4L),
     iter      = as.integer(model_spec$iter     %||% 2000L),
