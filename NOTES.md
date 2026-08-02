@@ -121,3 +121,5 @@ sigma      ~ student_t(3, 0, 2.5)          # brms default residual SD prior
       across all cohorts
 - [ ] **Automated cohort file validation webhook**: coordinating site runs a lightweight
       check script when a cohort uploads their `cohort_draws.rds`, before accepting it
+
+
