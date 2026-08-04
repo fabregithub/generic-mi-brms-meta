@@ -7,8 +7,12 @@ Running log of features added, design decisions, and ideas for future developmen
 ## v0.2.0 (2026-07-17)
 
 ### Added: interactive launchers
-- `launch.R` — RStudio menu launcher (no terminal needed; recommended for Windows users)
-- `launch.sh` — Bash menu launcher for Mac/Linux
+- `launch.R` — RStudio menu launcher (no terminal needed; recommended for Windows users).
+  Open in RStudio and click Source (`Ctrl+Shift+S` / `Cmd+Shift+S`). Uses `readline()` so
+  must be sourced interactively — not testable via piped input in a non-interactive session.
+- `launch.sh` — Bash menu launcher for Mac/Linux (`bash launch.sh` or `chmod +x` then double-click).
+  Covers: full pipeline, individual steps (validate, combine, fit, summarise, report), clean fits.
+- Both launchers mirror each other's menu options for consistency.
 
 ---
 
