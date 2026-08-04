@@ -14,6 +14,15 @@ Running log of features added, design decisions, and ideas for future developmen
   Covers: full pipeline, individual steps (validate, combine, fit, summarise, report), clean fits.
 - Both launchers mirror each other's menu options for consistency.
 
+## v0.3.0 (2026-08-04)
+
+### Changes
+- **Launcher menu reordered**: validate inputs (option 1) now appears before run full pipeline
+  (option 2) in both `launch.R` and `launch.sh`; encourages users to check inputs before
+  committing to a full run
+- **README updated**: command-line section now shows `bash launch.sh` as the primary entry point
+  instead of bare `Rscript` commands
+
 ---
 
 ## v0.1.0 (2026-07-17) — initial release

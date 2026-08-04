@@ -90,11 +90,17 @@ Open the project folder in RStudio, open `launch.R`, and click **Source**
 (`Ctrl+Shift+S` / `Cmd+Shift+S`). A numbered menu in the R console lets you
 validate inputs first, then run the full pipeline or individual steps — no terminal needed.
 
-#### Command line
+#### Mac / Linux terminal
 
 ```bash
-Rscript 01_validate_inputs.R   # check files, parameter overlap
-Rscript run_all.R              # validate + combine + fit + summarise
+bash launch.sh
+```
+
+Or make it executable once and run directly:
+
+```bash
+chmod +x launch.sh
+./launch.sh
 ```
 
 ### Outputs
