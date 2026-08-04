@@ -46,8 +46,8 @@ while true; do
   echo "========================================================"
   echo "  generic-mi-brms-meta — interactive launcher"
   echo "========================================================"
-  echo "  1.  Run full pipeline     (run_all.R)"
-  echo "  2.  Validate inputs       (01_validate_inputs.R)"
+  echo "  1.  Validate inputs       (01_validate_inputs.R)"
+  echo "  2.  Run full pipeline     (run_all.R)"
   echo "  3.  Combine draws         (02_combine_draws.R)"
   echo "  4.  Fit meta-analysis     (03_fit_meta.R)"
   echo "  5.  Posterior summary     (04_meta_summary.R)"
@@ -61,8 +61,8 @@ while true; do
   read -rp "Enter choice: " choice
 
   case "$choice" in
-    1) run_step "run_all.R" ;;
-    2) run_step "01_validate_inputs.R" ;;
+    1) run_step "01_validate_inputs.R" ;;
+    2) run_step "run_all.R" ;;
     3) run_step "02_combine_draws.R" ;;
     4) run_step "03_fit_meta.R" ;;
     5) run_step "04_meta_summary.R" ;;

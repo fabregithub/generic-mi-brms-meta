@@ -87,8 +87,8 @@ parameter_map = list(
 #### RStudio (no terminal needed — recommended for Windows users)
 
 Open the project folder in RStudio, open `launch.R`, and click **Source**
-(`Ctrl+Shift+S` / `Cmd+Shift+S`). A text menu in the R console lets you
-run the full pipeline or individual steps without any terminal.
+(`Ctrl+Shift+S` / `Cmd+Shift+S`). A numbered menu in the R console lets you
+validate inputs first, then run the full pipeline or individual steps — no terminal needed.
 
 #### Command line
 

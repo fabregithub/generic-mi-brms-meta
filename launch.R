@@ -33,8 +33,8 @@ repeat {
 ========================================================
   generic-mi-brms-meta — interactive launcher
 ========================================================
-  1. Run full pipeline     (run_all.R)
-  2. Validate inputs       (01_validate_inputs.R)
+  1. Validate inputs       (01_validate_inputs.R)
+  2. Run full pipeline     (run_all.R)
   3. Combine draws         (02_combine_draws.R)
   4. Fit meta-analysis     (03_fit_meta.R)
   5. Posterior summary     (04_meta_summary.R)
@@ -55,8 +55,8 @@ repeat {
     break
   }
 
-  if      (choice == "1") { cat("Running full pipeline...\n");    .run_clean("run_all.R") }
-  else if (choice == "2") { cat("Validating inputs...\n");        .run_clean("01_validate_inputs.R") }
+  if      (choice == "1") { cat("Validating inputs...\n");        .run_clean("01_validate_inputs.R") }
+  else if (choice == "2") { cat("Running full pipeline...\n");    .run_clean("run_all.R") }
   else if (choice == "3") { cat("Combining draws...\n");          .run_clean("02_combine_draws.R") }
   else if (choice == "4") { cat("Fitting meta-analysis...\n");    .run_clean("03_fit_meta.R") }
   else if (choice == "5") { cat("Posterior summary...\n");        .run_clean("04_meta_summary.R") }
