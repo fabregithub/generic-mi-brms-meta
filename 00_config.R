@@ -61,7 +61,7 @@ meta_spec <- list(
   # Posterior summary settings
   # ------------------------------------------------------------
   summary = list(
-    ci         = 0.89,   # credible interval width
+    ci         = 0.95,   # credible interval width
     rope_range = NULL    # c(low, high) on draw scale; NULL = skip ROPE
   ),
 

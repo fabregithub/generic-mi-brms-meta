@@ -29,7 +29,7 @@ cohort_labels <- paste(
   sapply(meta_spec$cohorts, function(x) x$label %||% x$file),
   collapse = ", "
 )
-ci_pct       <- round((meta_spec$summary$ci %||% 0.89) * 100)
+ci_pct       <- round((meta_spec$summary$ci %||% 0.95) * 100)
 rope_str     <- if (!is.null(meta_spec$summary$rope_range)) {
   paste0("ROPE = [", paste(round(meta_spec$summary$rope_range, 3), collapse = ", "), "]")
 } else {

@@ -23,6 +23,16 @@ Running log of features added, design decisions, and ideas for future developmen
 - **README updated**: command-line section now shows `bash launch.sh` as the primary entry point
   instead of bare `Rscript` commands
 
+## Unreleased (2026-09-26)
+
+### Changes
+- **Default credible interval 89% → 95%** (`meta_spec$summary$ci = 0.95`): aligns the
+  meta-analysis with `generic-mi-brms-pipeline`, whose `analysis_spec$summary$ci` defaults
+  to 0.95, so cohort-level and pooled intervals are reported at the same width. Changed in
+  `00_config.R`, the `%||%` fallbacks in `00_common_functions.R`, `04_meta_summary.R` and
+  `05_report.R`, the two-cohort example config, and the README Results template.
+  Configs that set `ci` explicitly are unaffected.
+
 ---
 
 ## v0.1.0 (2026-07-17) — initial release
@@ -114,7 +124,7 @@ sigma      ~ student_t(3, 0, 2.5)          # brms default residual SD prior
       outlier cohorts driving the pooled estimate
 
 ### Heterogeneity
-- [ ] **Prediction interval**: report the 89% prediction interval for a new cohort's effect,
+- [ ] **Prediction interval**: report the 95% prediction interval for a new cohort's effect,
       derived from `mu ± tau` — more informative than τ alone for communicating heterogeneity
       to clinical audiences
 - [ ] **Covariate-adjusted heterogeneity**: if cohort-level covariates are available

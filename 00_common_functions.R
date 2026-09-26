@@ -124,7 +124,7 @@ fit_meta_one <- function(draws_param, param_name, model_spec, results_dir) {
 # Summarise one fitted meta-analysis model
 # ------------------------------------------------------------------
 summarise_meta_fit <- function(fit, param_name, summary_spec) {
-  ci    <- summary_spec$ci %||% 0.89
+  ci    <- summary_spec$ci %||% 0.95
   alpha <- 1 - ci
 
   draws_pooled <- posterior::as_draws_df(fit, variable = "b_Intercept") %>%
@@ -175,7 +175,7 @@ summarise_meta_fit <- function(fit, param_name, summary_spec) {
 # ------------------------------------------------------------------
 # Per-cohort posterior summary from raw draws (not from the fitted model)
 # ------------------------------------------------------------------
-summarise_cohort_draws <- function(combined_draws, ci = 0.89, rope_range = NULL) {
+summarise_cohort_draws <- function(combined_draws, ci = 0.95, rope_range = NULL) {
   combined_draws %>%
     dplyr::group_by(cohort_id, cohort_label, parameter) %>%
     dplyr::summarise(

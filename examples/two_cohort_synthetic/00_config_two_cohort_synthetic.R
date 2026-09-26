@@ -27,7 +27,7 @@ meta_spec <- list(
   ),
 
   summary = list(
-    ci         = 0.89,
+    ci         = 0.95,
     rope_range = c(-0.1, 0.1)   # on log-OR scale ≈ OR 0.90–1.11
   ),
 

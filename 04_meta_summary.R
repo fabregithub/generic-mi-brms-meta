@@ -38,7 +38,7 @@ print(pooled_summary, n = Inf)
 # Per-cohort summary (intra-cohort variation)
 cohort_summary <- summarise_cohort_draws(
   combined_draws = combined,
-  ci             = summary_spec$ci %||% 0.89,
+  ci             = summary_spec$ci %||% 0.95,
   rope_range     = summary_spec$rope_range
 )
 readr::write_csv(cohort_summary, file.path(pub_dir, "cohort_summary.csv"))

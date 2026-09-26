@@ -218,7 +218,7 @@ The model reports **τ (tau)**, the between-cohort standard deviation, rather th
 
 ### Results
 
-> The pooled [log-OR / log-HR / coefficient] for [exposure] was [pooled_median] (89% HDI [pooled_ci_low, pooled_ci_high]; OR/HR = [exp(pooled_median)], 89% HDI [exp(pooled_ci_low), exp(pooled_ci_high)]), with a probability of direction of [pd×100]%. Between-cohort heterogeneity was τ = [tau_median] (89% HDI [tau_ci_low, tau_ci_high]), indicating [low / moderate / substantial] variability in the exposure effect across cohorts [and can be considered [negligible/significant] with [rope_pct]% of the pooled posterior within the region of practical equivalence].
+> The pooled [log-OR / log-HR / coefficient] for [exposure] was [pooled_median] (95% HDI [pooled_ci_low, pooled_ci_high]; OR/HR = [exp(pooled_median)], 95% HDI [exp(pooled_ci_low), exp(pooled_ci_high)]), with a probability of direction of [pd×100]%. Between-cohort heterogeneity was τ = [tau_median] (95% HDI [tau_ci_low, tau_ci_high]), indicating [low / moderate / substantial] variability in the exposure effect across cohorts [and can be considered [negligible/significant] with [rope_pct]% of the pooled posterior within the region of practical equivalence].
 
 **Guidance for filling in the template:**
 
