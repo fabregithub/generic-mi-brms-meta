@@ -33,6 +33,49 @@ Running log of features added, design decisions, and ideas for future developmen
   `05_report.R`, the two-cohort example config, and the README Results template.
   Configs that set `ci` explicitly are unaffected.
 
+### Planned (after the ECHIG talk, 2026-09-28): pool-first as the default pooling method
+
+**Why.** The current model, `value ~ 1 + (1 | cohort_id)` on stacked per-imputation draws,
+treats 10⁴–10⁵ draws as independent observations. Each cohort's mean is then "known" almost
+exactly (SE ≈ σ/√n_draws), so within-cohort uncertainty barely reaches μ: the pooled interval
+width follows the *scatter* of the cohort means, not their precision, and a cohort's weight
+depends on `m` and the draw count rather than on information. The v0.1.0 design note "a cohort
+with more imputations contributes more rows and thus more information" is this same problem.
+
+**Evidence** (synthetic three-cohort run for the ECHIG talk, `m` = 20/30/40, true τ = 0.10;
+script `presentations/FY2026/20260928-ECHIG/R/synthetic_meta.R`). 95% widths, log-HR scale:
+
+| | common effect (τ = 0) | stacked draws | pool first |
+|---|---|---|---|
+| any cancer | 0.33 | 0.53 | 0.78 |
+| leukaemia | 0.59 | **0.30** | 1.03 |
+
+The common-effect interval is the narrowest a valid pooled analysis can give. For leukaemia the
+stacked interval is narrower than that (the three cohort means happened to be close although each
+was imprecise), i.e. over-confident. For any cancer it happened to look plausible, so the stacked
+model is erratic rather than consistently biased in one direction.
+
+**What to change** (on a branch; the cohort export format stays unchanged):
+- [ ] New step: from each cohort's draws, compute the pooled estimate and Rubin's-rules SE,
+      `T = W̄ + (1 + 1/m) B`, per parameter (`W̄` = mean within-imputation variance,
+      `B` = variance of the imputation means)
+- [ ] Fit `est | se(se) ~ 1 + (1 | cohort_id)` (normal–normal random effects), same priors
+- [ ] `meta_spec$method = "pool_first"` (default) / `"stacked"` (kept as a sensitivity analysis)
+- [ ] Sensitivity analyses: common-effect model (τ = 0); alternative τ prior (e.g. half-normal(0, 0.5)
+      vs Exp(1)); leave-one-cohort-out
+- [ ] Report a prediction interval for a new cohort alongside μ
+- [ ] Summaries, forest plots and the Quarto report show both methods
+- [ ] README: replace the "more imputations → more information" rationale; update the statistical
+      model section and the Methods template
+- [ ] Tests: rerun the two-cohort example and the synthetic three-cohort case; check that pooled
+      intervals are never narrower than the common-effect benchmark
+- [ ] Caveat to document: pool first uses a normal approximation of each cohort's posterior, which
+      may be poor with few cases (skewed log-HR); with two cohorts τ is not identified, so the τ
+      prior drives the result
+
+The ECHIG keynote (ENRICH-CC folic acid, 28 Sept 2026) presented pool first as the recommendation,
+with stacked draws as a sensitivity analysis.
+
 ---
 
 ## v0.1.0 (2026-07-17) — initial release
